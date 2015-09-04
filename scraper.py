@@ -13,7 +13,7 @@ from dateutil.parser import parse
 
 # Set up variables
 entity_id = "E4207_SMBC_gov"
-url = "http://www.stockport.gov.uk/services/councildemocracy/your_council/documentsandfacts/budgetsfinancialmonitoringreports/councilspending"
+url = "http://www.stockport.gov.uk/services/councildemocracy/yourcouncil/documentsandfacts/budgetsfinancialmonitoringreports/councilspending"
 errors = 0
 # Set up functions
 def validateFilename(filename):
@@ -63,7 +63,7 @@ def convert_mth_strings ( mth_string ):
     return mth_string
 # pull down the content from the webpage
 html = urllib2.urlopen(url)
-soup = BeautifulSoup(html, "lxml")
+soup = BeautifulSoup(html)
 # find all entries with the required class
 block = soup.find('div', 'double-margin-bottom body-text')
 links = block.find_all('a', href=True)
@@ -71,10 +71,17 @@ for link in links:
     csvfile = link.text
     if 'Expenditure' in csvfile:
         csvfile = link.text
+        csvMth = ''
+        csvYr = ''
         if 'Excel' in csvfile:
             url = link['href']
             csvMth = csvfile[:3]
             csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
+        elif 'feb15' in link['href'] or 'dec14' in link['href'] or 'november_2014' in link['href']:
+            url = link['href']
+            csvMth = csvfile[:3]
+            csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
+        if csvYr:
             csvMth = convert_mth_strings(csvMth.upper())
             filename = entity_id + "_" + csvYr + "_" + csvMth
             todays_date = str(datetime.now())
@@ -99,4 +106,3 @@ for link in links:
 
 if errors > 0:
    raise Exception("%d errors occurred during scrape." % errors)
-
