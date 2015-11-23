@@ -106,16 +106,16 @@ link_lists = []
 for link in links:
     csvfile = link.text
     if 'Expenditure' in csvfile:
-        csvfile = link.text
+        csvfile = link.text.strip()
         csvMth = ''
         csvYr = ''
         if 'CSV' in csvfile:
-            link_lists.append(csvfile.split('(')[0].strip())
+            link_lists.append(csvfile.split('Expenditure')[0].strip().replace(u'\xa0', ' '))
             url = link['href']
             csvMth = csvfile[:3]
             csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
         else:
-            if csvfile.split('(')[0].strip() in link_lists:
+            if csvfile.split('Expenditure')[0].strip().replace(u'\xa0', ' ') in link_lists:
                 continue
             url = link['href']
             csvMth = csvfile[:3]
