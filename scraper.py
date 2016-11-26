@@ -100,8 +100,8 @@ soup = BeautifulSoup(html, 'lxml')
 
 #### SCRAPE DATA
 
-block = soup.find('div', 'double-margin-bottom body-text')
-links = block.find_all('a', href=True)
+block = soup.find('h4', text='Expenditure Reports')
+links = block.find_next('ul').find_all('a', href=True)
 link_lists = []
 for link in links:
     csvfile = link.text
@@ -114,22 +114,22 @@ for link in links:
             url = link['href']
             csvMth = csvfile[:3]
             csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
-        else:
-            if csvfile.split('Expenditure')[0].strip().replace(u'\xa0', ' ') in link_lists:
-                continue
-            url = link['href']
-            csvMth = csvfile[:3]
-            csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
-        if 'feb15' in link['href'] or 'dec14' in link['href'] or 'november_2014' in link['href']:
-            url = link['href']
-            csvMth = csvfile[:3]
-            csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
-        if csvYr:
+            if 'January to March 2016' in csvfile:
+                csvMth = 'Q1'
+                csvYr = '2016'
             csvMth = convert_mth_strings(csvMth.upper())
-            todays_date = str(datetime.now())
             data.append([csvYr, csvMth, url])
 
 
+for link in links[-47:]:
+    csvfile = link.text
+    if 'Expenditure' in csvfile:
+        url = link['href']
+        csvMth = csvfile[:3]
+        csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
+        csvMth = convert_mth_strings(csvMth.upper())
+        data.append([csvYr, csvMth, url])
+      
 #### STORE DATA 1.0
 
 for row in data:
@@ -151,4 +151,3 @@ if errors > 0:
 
 
 #### EOF
-
