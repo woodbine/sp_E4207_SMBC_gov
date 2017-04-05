@@ -88,7 +88,7 @@ def convert_mth_strings ( mth_string ):
 #### VARIABLES 1.0
 
 entity_id = "E4207_SMBC_gov"
-url = "http://www.stockport.gov.uk/services/councildemocracy/yourcouncil/documentsandfacts/budgetsfinancialmonitoringreports/councilspending"
+url = "https://data.gov.uk/dataset/stockport-council-expenditure-over-500"
 errors = 0
 data = []
 
@@ -100,36 +100,34 @@ soup = BeautifulSoup(html, 'lxml')
 
 #### SCRAPE DATA
 
-block = soup.find('h4', text='Expenditure Reports')
-links = block.find_next('ul').find_all('a', href=True)
-link_lists = []
-for link in links:
-    csvfile = link.text
-    if 'Expenditure' in csvfile:
-        csvfile = link.text.strip()
-        csvMth = ''
-        csvYr = ''
-        if 'CSV' in csvfile:
-            link_lists.append(csvfile.split('Expenditure')[0].strip().replace(u'\xa0', ' '))
-            url = link['href']
-            csvMth = csvfile[:3]
-            csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
-            if 'January to March 2016' in csvfile:
-                csvMth = 'Q1'
-                csvYr = '2016'
-            csvMth = convert_mth_strings(csvMth.upper())
-            data.append([csvYr, csvMth, url])
+blocks = soup.find_all('div', 'dataset-resource-text')
+dic = {}
+for block in blocks:
+    link = block.find_all('a')[-1]
+    url = link['href']
+    csvfile =block.find('span', 'inner-cell').text.split()[0]
+    if '.csv' in url:
+        dic[csvfile] = url
 
+for block in blocks:
+    link = block.find_all('a')[-1]
+    url = link['href']
+    csvfile =block.find('span', 'inner-cell').text.split()[0]
+    if csvfile not in dic:
+        dic[csvfile] = url
+        csvMth = csvfile.split('/')[1]
+        if len(csvMth) == 1:
+            csvMth = '0' + csvMth
+        csvYr = csvfile.split('/')[2]
+for k, v in dic.iteritems():
+    csvMth = k.split('/')[1]
+    if len(csvMth) == 1:
+        csvMth = '0' + csvMth
+    csvYr = k.split('/')[2]
+    url = v
+    csvMth = convert_mth_strings(csvMth.upper())
+    data.append([csvYr, csvMth, url])
 
-for link in links[-47:]:
-    csvfile = link.text
-    if 'Expenditure' in csvfile:
-        url = link['href']
-        csvMth = csvfile[:3]
-        csvYr = csvfile.replace(u'\xa0', ' ').split(' ')[1].strip()
-        csvMth = convert_mth_strings(csvMth.upper())
-        data.append([csvYr, csvMth, url])
-      
 #### STORE DATA 1.0
 
 for row in data:
